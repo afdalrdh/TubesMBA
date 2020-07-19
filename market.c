@@ -14,12 +14,9 @@ trie_address generate_itemset_trie()
 		produk_index[i] = i;
 	}
 	int j;
-	for(j=0; j<5; j++);
+	for(j=0; j<5; j++)
 	{
-		printf("%d\n", j);
-		
-		//combination_to_generate_trie(root, produk_index, produk_temp, 0, 29, 0, i+1);
-		system("pause");
+		combination_to_generate_trie(root, produk_index, produk_temp, 0, 29, 0, j+1);
 	}
 	
 	system("pause");
@@ -30,7 +27,6 @@ void combination_to_generate_trie(trie_address root, int data_array[], int data_
 { 
     if (index == subset_element_number)
     {
-    	printf("%d\n", subset_element_number);
         root = insert_trie(root, data_array_temp, subset_element_number);
         return; 
     } 
@@ -101,18 +97,6 @@ void generateProduk(int X, int min_support, int min_confidence)
     int a[1];
     trie_address tempor;
     printf("Data subset 1:\n");
-    for(i=0; i<30; i++)
-    {
-    	a[0] = i;
-    	printf("%d: ", i);
-    	if(search_trie(root, a, 1))
-    	{
-    		printf("Ada\n");
-		} else
-		{
-			printf("Tidak ada\n");
-		}
-	}
     
     insert_basket_into_trie(root, bkt, X);
     show_support_list_from_trie(root, min_support, support_per_length);
@@ -162,10 +146,21 @@ void combination_for_association_rules(trie_address root, int data_array[], int 
 
 void print_last_for_assoc_rule(trie_address root, int data_array[], int length, int threshold, int min_confidence)
 {
+	FILE *fp;
+	char produk[120][50];
 	trie_address temp;
 	int array[length];
 	int temporary[5];
-	int i;
+	int i = 0;
+	
+	fp = fopen("produk30.txt", "r");
+	while(!feof(fp)) 		//membaca 100 produk
+	{
+		fscanf(fp,"%s",produk[i]);
+		i++;
+	}
+	fclose(fp);
+	
 	temp = search_trie_node(root, data_array, length);
 	
 	if(Support(temp)>=threshold) {
@@ -173,9 +168,9 @@ void print_last_for_assoc_rule(trie_address root, int data_array[], int length, 
 		for(i=0; i<length;i++)
 	    {
 	    	if(i!=length-1)
-	    		printf("%d ", data_array[i]);
+	    		printf("%s ", produk[data_array[i]]);
 	    	else
-	    		printf("%d", data_array[i]);
+	    		printf("%s", produk[data_array[i]]);
 	    	array[i] = data_array[i];
 		}
 		printf("}: \n");
@@ -187,6 +182,18 @@ void print_last_for_assoc_rule(trie_address root, int data_array[], int length, 
 
 void print_subset(trie_address root, int data_array[], int data_array_temp[], int start, int end, int index, int subset_element_length, int max_subset_length, int min_confidence)
 {
+	FILE *fp;
+	char produk[120][50];
+	int i = 0;
+	
+	fp = fopen("produk30.txt", "r");
+	while(!feof(fp)) 		//membaca 100 produk
+	{
+		fscanf(fp,"%s",produk[i]);
+		i++;
+	}
+	fclose(fp);
+	
 	boolean ketemu;
 	if (index == subset_element_length) 
     { 
@@ -194,35 +201,35 @@ void print_subset(trie_address root, int data_array[], int data_array_temp[], in
         for (int j=0; j<subset_element_length; j++) 
         {
         	if(j!=subset_element_length-1)
-        		printf("%d ", data_array_temp[j]);
+        		printf("%s ", produk[data_array_temp[j]]);
         	else
-        		printf("%d", data_array_temp[j]);
+        		printf("%s", produk[data_array_temp[j]]);
 		}
         printf("} -> {{");
         for (int j=0; j<max_subset_length; j++) 
         {
         	if(j!=max_subset_length-1)
-        		printf("%d ", data_array[j]);
+        		printf("%s ", produk[data_array[j]]);
         	else
-        		printf("%d", data_array[j]);
+        		printf("%s", produk[data_array[j]]);
 		}
 		printf("} - {");
 		for (int j=0; j<subset_element_length; j++) 
         {
         	if(j!=subset_element_length-1)
-        		printf("%d ", data_array_temp[j]);
+        		printf("%s ", produk[data_array_temp[j]]);
         	else
-        		printf("%d", data_array_temp[j]);
+        		printf("%s", produk[data_array_temp[j]]);
 		}
 		printf("}} berarti jika seseorang membeli ");
 		for (int j=0; j<subset_element_length; j++) 
         {
         	if (j<subset_element_length-2)
-        		printf("%d, ", data_array_temp[j]);
+        		printf("%s, ", produk[data_array_temp[j]]);
         	else if(j==subset_element_length-2)
-        		printf("%d dan ", data_array_temp[j]);
+        		printf("%s dan ", produk[data_array_temp[j]]);
         	else if(j==subset_element_length-1)
-        		printf("%d", data_array_temp[j]);
+        		printf("%s", produk[data_array_temp[j]]);
 		}
 		printf(", maka dia akan membeli ");
 		for (int j=0; j<max_subset_length; j++) 
@@ -237,7 +244,7 @@ void print_subset(trie_address root, int data_array[], int data_array_temp[], in
 			}
 			if(!ketemu)
 			{
-				printf("%d ", data_array[j]);
+				printf("%s ", produk[data_array[j]]);
 			}
 		}
 		printf("juga\n");
@@ -253,36 +260,39 @@ void print_subset(trie_address root, int data_array[], int data_array_temp[], in
 
 void print_confidence(trie_address root, int data_subset[], int data_itemset[], int sub_length, int item_length, int min_confidence)
 {
+	FILE *fp;
+	char produk[120][50];
 	trie_address itemset_temp, subset_temp;
-	int i;
+	int i = 0;
 	float confidence;
 	
 	itemset_temp = search_trie_node(root, data_itemset, item_length);
 	subset_temp = search_trie_node(root, data_subset, sub_length);
-	printf("SAMPAI\n");
-	if(subset_temp == NULL)
-	{
-		printf("Yang inimah NULL\n");
-	}
-	//printf("%d %d\n", itemset_temp->support, subset_temp->support);
 	confidence = ((float)itemset_temp->support/(float)subset_temp->support)*100;
 	
-	printf("Berhasil sampai sini\n");
+	fp = fopen("produk30.txt", "r");
+	while(!feof(fp)) 		//membaca 100 produk
+	{
+		fscanf(fp,"%s",produk[i]);
+		i++;
+	}
+	fclose(fp);
+	
 	printf("Confidence = support{");
 	for(i=0;i<item_length;i++)
 	{
 		if(i!=item_length-1)
-			printf("%d, ", data_itemset[i]);
+			printf("%s, ", produk[data_itemset[i]]);
 		else
-			printf("%d", data_itemset[i]);
+			printf("%s", produk[data_itemset[i]]);
 	}
 	printf("}/support{");
 	for(i=0;i<sub_length;i++)
 	{
 		if(i!=sub_length-1)
-			printf("%d, ", data_subset[i]);
+			printf("%s, ", produk[data_subset[i]]);
 		else
-			printf("%d", data_subset[i]);
+			printf("%s", produk[data_subset[i]]);
 	}
 	printf("} = %d/%d = %.2f%%\n", itemset_temp->support, subset_temp->support, confidence);
 	if(confidence >= min_confidence)
