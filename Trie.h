@@ -18,7 +18,7 @@
 #define Nil NULL
 #define Data(T) (T)->data
 #define Support(T) (T)->support
-#define N 100
+#define N 30
 
 //===============================
 // DATA TYPE

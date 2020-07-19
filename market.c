@@ -1,20 +1,25 @@
 #include "market.h"
+#include <time.h>
 
 trie_address generate_itemset_trie()
 {
 	int i;
-	int produk_index[10];
-	int produk_temp[10];
+	int produk_index[30];
+	int produk_temp[30];
 	
 	trie_address root = make_trienode('\0');
 	
-	for(i=0; i<10; i++)
+	for(i=0; i<30; i++)
 	{
 		produk_index[i] = i;
 	}
-	for(i=0; i<5; i++);
+	int j;
+	for(j=0; j<5; j++);
 	{
-		combination_to_generate_trie(root, produk_index, produk_temp, 0, 9, 0, i+1);
+		printf("%d\n", j);
+		
+		//combination_to_generate_trie(root, produk_index, produk_temp, 0, 29, 0, i+1);
+		system("pause");
 	}
 	
 	system("pause");
@@ -23,8 +28,9 @@ trie_address generate_itemset_trie()
 
 void combination_to_generate_trie(trie_address root, int data_array[], int data_array_temp[], int start, int end, int index, int subset_element_number) 
 { 
-    if (index == subset_element_number) 
-    { 
+    if (index == subset_element_number)
+    {
+    	printf("%d\n", subset_element_number);
         root = insert_trie(root, data_array_temp, subset_element_number);
         return; 
     } 
@@ -38,14 +44,15 @@ void combination_to_generate_trie(trie_address root, int data_array[], int data_
 void generateProduk(int X, int min_support, int min_confidence)
 {
 	FILE *fp, *ft;
-	int i=0,y,random5,random100;
+	int i=0,y,random5,random100, association_itemset_length;
 	char c,produk[150][20], kode[150][5];
     basket bkt;
     createBasket(&bkt);
     transaksi temp;
     trie_address root;
+    int support_per_length[5] = {0};
     
-	fp = fopen("produk.txt", "r");
+	fp = fopen("produk30.txt", "r");
 	switch(X){
 		case 20:
 			ft =fopen("transaksi20.txt", "w+");
@@ -65,6 +72,7 @@ void generateProduk(int X, int min_support, int min_confidence)
 	}
 	fclose(fp);
     
+    srand(time(NULL));
 	for(i=0;i<X;i++){
 		
 		fprintf(ft,"T%d\t", i+1);
@@ -72,7 +80,7 @@ void generateProduk(int X, int min_support, int min_confidence)
 		
 		random5=rand()%5+1;
 		for(random5;random5>=1;random5--){
-			random100=rand()%100+1;
+			random100=rand()%29+1;
 			addProduk(&temp, random100);	//produk
 			
 			if(random5==1){
@@ -90,31 +98,297 @@ void generateProduk(int X, int min_support, int min_confidence)
     printBasket(bkt);
     root = generate_itemset_trie();
     
-    insert_basket_into_trie(root, bkt, X);
-    show_support_list_from_basket(root, bkt, min_support);
+    int a[1];
+    trie_address tempor;
+    printf("Data subset 1:\n");
+    for(i=0; i<30; i++)
+    {
+    	a[0] = i;
+    	printf("%d: ", i);
+    	if(search_trie(root, a, 1))
+    	{
+    		printf("Ada\n");
+		} else
+		{
+			printf("Tidak ada\n");
+		}
+	}
     
-   
+    insert_basket_into_trie(root, bkt, X);
+    show_support_list_from_trie(root, min_support, support_per_length);
+    for(i=0; i<5; i++)
+		printf("Total passed on length %d: %d\n", i+1, support_per_length[i]);
+	for(i=0; i<5; i++)
+	{
+		if(support_per_length[i] > 0)
+			association_itemset_length = i+1;
+	}
+	printf("Panjang subset yang dijadikan association rules: %d\n", association_itemset_length);
+	system("pause");
+	printf("Final Subset yang akan digunakan untuk mencari Association Rules: \n");
+	show_final_item_subset(root, association_itemset_length, min_support);
+	system("pause");
+	generate_association_rule(root, association_itemset_length, min_support, min_confidence);
 }
 
-void show_support_list_from_basket(trie_address root, basket bkt, int min_support)
+void generate_association_rule(trie_address root, int assoc_item_length, int min_support, int min_confidence)
 {
+	int data_array[30], data_array_temp[30];
+	int i;
 	
+	for(i=0; i<30; i++)
+	{
+		data_array[i] = i;
+	}
+	combination_for_association_rules(root, data_array, data_array_temp, 0, 29, 0, assoc_item_length, min_support, min_confidence);
+}
+
+void combination_for_association_rules(trie_address root, int data_array[], int data_array_temp[], int start, int end, int index, int subset_element_number, int threshold, int min_confidence)
+{
+	if (index == subset_element_number) 
+    {
+    	if (search_trie(root, data_array_temp, subset_element_number))
+    	{
+    		print_last_for_assoc_rule(root, data_array_temp, subset_element_number, threshold, min_confidence);
+		}
+        return; 
+    } 
+    for (int i=start; i<=end && end-i+1 >= subset_element_number-index; i++) 
+    { 
+        data_array_temp[index] = data_array[i]; 
+        combination_for_association_rules(root, data_array, data_array_temp, i+1, end, index+1, subset_element_number, threshold, min_confidence); 
+    } 
+}
+
+void print_last_for_assoc_rule(trie_address root, int data_array[], int length, int threshold, int min_confidence)
+{
+	trie_address temp;
+	int array[length];
+	int temporary[5];
+	int i;
+	temp = search_trie_node(root, data_array, length);
 	
+	if(Support(temp)>=threshold) {
+		printf("Subset untuk itemset {");
+		for(i=0; i<length;i++)
+	    {
+	    	if(i!=length-1)
+	    		printf("%d ", data_array[i]);
+	    	else
+	    		printf("%d", data_array[i]);
+	    	array[i] = data_array[i];
+		}
+		printf("}: \n");
+		for(i=0; i<length-1;i++)
+			print_subset(root, array, temporary, 0, length-1, 0, i+1, length, min_confidence);
+		printf("\n");
+	}
+}
+
+void print_subset(trie_address root, int data_array[], int data_array_temp[], int start, int end, int index, int subset_element_length, int max_subset_length, int min_confidence)
+{
+	boolean ketemu;
+	if (index == subset_element_length) 
+    { 
+    	printf("Rule {");
+        for (int j=0; j<subset_element_length; j++) 
+        {
+        	if(j!=subset_element_length-1)
+        		printf("%d ", data_array_temp[j]);
+        	else
+        		printf("%d", data_array_temp[j]);
+		}
+        printf("} -> {{");
+        for (int j=0; j<max_subset_length; j++) 
+        {
+        	if(j!=max_subset_length-1)
+        		printf("%d ", data_array[j]);
+        	else
+        		printf("%d", data_array[j]);
+		}
+		printf("} - {");
+		for (int j=0; j<subset_element_length; j++) 
+        {
+        	if(j!=subset_element_length-1)
+        		printf("%d ", data_array_temp[j]);
+        	else
+        		printf("%d", data_array_temp[j]);
+		}
+		printf("}} berarti jika seseorang membeli ");
+		for (int j=0; j<subset_element_length; j++) 
+        {
+        	if (j<subset_element_length-2)
+        		printf("%d, ", data_array_temp[j]);
+        	else if(j==subset_element_length-2)
+        		printf("%d dan ", data_array_temp[j]);
+        	else if(j==subset_element_length-1)
+        		printf("%d", data_array_temp[j]);
+		}
+		printf(", maka dia akan membeli ");
+		for (int j=0; j<max_subset_length; j++) 
+        {
+        	ketemu = false;
+        	for (int k=0; k<subset_element_length; k++)
+        	{
+        		if(data_array[j]==data_array_temp[k])
+	        	{
+	        		ketemu = true;
+				}
+			}
+			if(!ketemu)
+			{
+				printf("%d ", data_array[j]);
+			}
+		}
+		printf("juga\n");
+		print_confidence(root, data_array_temp, data_array, subset_element_length, max_subset_length, min_confidence);
+        return; 
+    } 
+    for (int i=start; i<=end && end-i+1 >= subset_element_length-index; i++) 
+    { 
+        data_array_temp[index] = data_array[i]; 
+        print_subset(root, data_array, data_array_temp, i+1, end, index+1, subset_element_length, max_subset_length, min_confidence); 
+    } 
+}
+
+void print_confidence(trie_address root, int data_subset[], int data_itemset[], int sub_length, int item_length, int min_confidence)
+{
+	trie_address itemset_temp, subset_temp;
+	int i;
+	float confidence;
+	
+	itemset_temp = search_trie_node(root, data_itemset, item_length);
+	subset_temp = search_trie_node(root, data_subset, sub_length);
+	printf("SAMPAI\n");
+	if(subset_temp == NULL)
+	{
+		printf("Yang inimah NULL\n");
+	}
+	//printf("%d %d\n", itemset_temp->support, subset_temp->support);
+	confidence = ((float)itemset_temp->support/(float)subset_temp->support)*100;
+	
+	printf("Berhasil sampai sini\n");
+	printf("Confidence = support{");
+	for(i=0;i<item_length;i++)
+	{
+		if(i!=item_length-1)
+			printf("%d, ", data_itemset[i]);
+		else
+			printf("%d", data_itemset[i]);
+	}
+	printf("}/support{");
+	for(i=0;i<sub_length;i++)
+	{
+		if(i!=sub_length-1)
+			printf("%d, ", data_subset[i]);
+		else
+			printf("%d", data_subset[i]);
+	}
+	printf("} = %d/%d = %.2f%%\n", itemset_temp->support, subset_temp->support, confidence);
+	if(confidence >= min_confidence)
+	{
+		printf("Karena confidence nya lebih besar atau sama dengan min. confidence(%d%%), maka:\n", min_confidence);
+		printf("RULES DITERIMA\n");
+	} else
+	{
+		printf("Karena confidence nya lebih kecil dari min. confidence(%d%%), maka:\n", min_confidence);
+		printf("RULES DITOLAK\n");
+	}
+	printf("\n");
+}
+
+void show_final_item_subset(trie_address root, int assoc_item_length, int min_support)
+{
+	int data_array[30], data_array_temp[30];
+	int i;
+	
+	for(i=0; i<30; i++)
+	{
+		data_array[i] = i;
+	}
+	
+	combination_for_final_subset(root, data_array, data_array_temp, 0, 29, 0, assoc_item_length, min_support);
+}
+
+void combination_for_final_subset(trie_address root, int data_array[], int data_array_temp[], int start, int end, int index, int subset_element_number, int threshold) 
+{ 
+    if (index == subset_element_number) 
+    {
+    	if (search_trie(root, data_array_temp, subset_element_number))
+    	{
+    		print_support_min_threshold_eliminated(root, data_array_temp, subset_element_number, threshold);
+		}
+        return; 
+    } 
+    for (int i=start; i<=end && end-i+1 >= subset_element_number-index; i++) 
+    { 
+        data_array_temp[index] = data_array[i]; 
+        combination_for_final_subset(root, data_array, data_array_temp, i+1, end, index+1, subset_element_number, threshold); 
+    } 
+}
+
+void print_support_min_threshold_eliminated(trie_address root, int data_array[], int length, int threshold)
+{
+	FILE *fp;
+	trie_address temp;
+	int i = 0;
+	char produk[150][20];
+	
+	temp = search_trie_node(root, data_array, length);
+	
+	fp = fopen("produk30.txt", "r");
+	while(!feof(fp)) 		//membaca 100 produk
+	{
+		fscanf(fp,"%s",produk[i]);
+		i++;
+	}
+	fclose(fp);
+	
+	if(Support(temp)>=threshold) {
+		printf("{");
+		for(i=0; i<length;i++)
+	    {
+	    	if(i!=length-1)
+	    		printf("%s ", produk[data_array[i]]);
+	    	else
+	    		printf("%s", produk[data_array[i]]);
+		}			
+		printf("}: Support = %d\n", Support(temp));
+	}
+}
+
+void show_support_list_from_trie(trie_address root, int min_support, int *support_per_length)
+{
+	int data_array[30], data_array_temp[30];
+	int i;
+	
+	for(i=0; i<30; i++)
+	{
+		data_array[i] = i;
+	}
+	
+	for(i=0; i<5; i++)
+	{
+		combination_for_showing_support(root, data_array, data_array_temp, 0, 29, 0, i+1, min_support, support_per_length);
+	}
+}
+
+void show_support_list_from_basket(trie_address root, basket bkt, int min_support, int *support_per_length)
+{
 	int i, j, k;
 	int temp[5], temp_data[5];
 	
 	for(i=0; i<bkt.numOfProduk; i++)
 	{
-		show_support_list_from_transaction(root, bkt.Produk[i].barang, min_support);
+		show_support_list_from_transaction(root, bkt.Produk[i].barang, min_support, support_per_length);
 	}
 }
 
-void show_support_list_from_transaction(trie_address root, List transaksi, int min_support)
+void show_support_list_from_transaction(trie_address root, List transaksi, int min_support, int *support_per_length)
 {
 	int count = NbElmt(transaksi); 
 	int temp[count];
 	int temp_data[count];
-	int support_per_length[5] = {0};
 	int i = 0;
 	
 	address P = First(transaksi);
@@ -131,13 +405,15 @@ void show_support_list_from_transaction(trie_address root, List transaksi, int m
     {
     	combination_for_showing_support(root, temp, temp_data, 0, count-1, 0, i+1, min_support, support_per_length);
 	}
-	printf("\n");
 }
 
 void combination_for_showing_support(trie_address root, int data_array[], int data_array_temp[], int start, int end, int index, int subset_element_number, int threshold, int *length) 
-{ 
+{
     if (index == subset_element_number) 
     {
+    	//for(int i=0; i<subset_element_number; i++)
+    	//	printf("%d ", data_array_temp[i]);
+    	//printf("\n");
     	if (search_trie(root, data_array_temp, subset_element_number))
     	{
     		print_support_min_threshold(root, data_array_temp, subset_element_number, threshold, length);
@@ -153,36 +429,37 @@ void combination_for_showing_support(trie_address root, int data_array[], int da
 
 void print_support_min_threshold(trie_address root, int* data_array, int length, int threshold, int *supp_per_length) {
 	trie_address temp;
-	int i;
+	int i = 0;
+	FILE *fp;
+	char produk[150][20];
 	
-	for(i=0;i<length;i++)
+	/*fp = fopen("produk30.txt", "r");
+	while(!feof(fp)) 		//membaca 100 produk
 	{
-		printf("%d ",data_array[i]);
+		fscanf(fp,"%s",produk[i]);
+		i++;
 	}
-	printf("\n");
-	system("pause");
+	fclose(fp);
 	
-	printf("|");
+	printf("{");
 	for(i=0; i<length;i++)
     {
     	if(i!=length-1)
-    		printf("%d ", data_array[i]);
+    		printf("%s, ", produk[data_array[i]]);
     	else
-    		printf("%d", data_array[i]);
+    		printf("%s", produk[data_array[i]]);
 	}
+	printf("} ");*/
 	
 	temp = search_trie_node(root, data_array, length);
-	if(length < 4)
-		printf("\t\t\t");
-	else if(length < 6)
-		printf("\t\t");
+	//printf(": Support = ");
 		
-	printf("|%d\t|", temp->support);
+	//printf("%d ", temp->support);
 	if(temp->support >= threshold) {
-		printf(" PASSED \n");
+		//printf("(PASSED) \n");
 		supp_per_length[length-1] = supp_per_length[length-1] + 1;
-	} else
-		printf(" FAILED \n");
+	}
+		//printf("(FAILED) \n");
 }
 
 void insert_basket_into_trie(trie_address root, basket bkt, int transaction_total_choice)
@@ -203,19 +480,12 @@ void insert_transaction_into_trie(trie_address root, List transaksi)
 	int temp_data[count];
 	int i = 0;
 	address P = First(transaksi);
-	if (P == Nil)
-	{	
-	}
-	else
+	do
 	{
-		do
-		{
-			temp[i] = Info(P).index_produk;
-			//printf("%s, ", produk[Info(P).index_produk]);
-			P = Next(P);
-			i++;
-		} while (P != Nil);
-	}
+		temp[i] = Info(P).index_produk;
+		P = Next(P);
+		i++;
+	} while (P != Nil);
 	sortIntArray(temp, count);
 	for(i=0; i<count; i++)
 		combination_to_add_support(root, temp, temp_data, 0, count-1, 0, i+1);
