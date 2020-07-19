@@ -67,7 +67,7 @@ address Search1(List L, infotype X)
 
 	while ((P != Nil) && (!found))
 	{
-		if (strcmp(Info(P).nama, X.nama) == 0)
+		if (Info(P).index_produk == X.index_produk)
 		{
 			{
 				found = true;
@@ -94,11 +94,11 @@ address Search2(List L, infotype X)
 	else
 	{
 		P = First(L);
-		while ((Next(P) != Nil) && !(strcmp(Info(P).nama, X.nama) == 0))
+		while ((Next(P) != Nil) && !(Info(P).index_produk == X.index_produk))
 		{
 			P = Next(P);
 		} /* Next(P)==Nil or Info(P)==X */
-		if (strcmp(Info(P).nama, X.nama) == 0)
+		if (Info(P).index_produk == X.index_produk)
 		{
 			return P;
 		}
@@ -149,13 +149,13 @@ address SearchPrec(List L, infotype X)
 	else
 	{
 		P = First(L);
-		while ((Next(P) != Nil) && !(strcmp(Info(P).nama, X.nama) == 0))
+		while ((Next(P) != Nil) && !(Info(P).index_produk == X.index_produk))
 		{
 			Prec = P;
 			P = Next(P);
 		} /* Next(P)==Nil or Info(P)==X */
 
-		if (strcmp(Info(P).nama, X.nama) == 0)
+		if (Info(P).index_produk == X.index_produk)
 		{ /* Ketemu Info (P)== X */
 			return Prec;
 		}
@@ -184,7 +184,7 @@ void Insert(List *L, address P)
 	{
 		address Ptemp = First(*L);
 		address Ptempnext = First(*L);
-		if (strcmp(Info(Ptempnext).nama, Info(P).nama) < 0 && NbElmt(*L) == 1)
+		if (Info(Ptempnext).index_produk == Info(P).index_produk && NbElmt(*L) == 1)
 		{
 			InsertFirst(&(*L), P);
 			return;
@@ -192,7 +192,7 @@ void Insert(List *L, address P)
 
 		while (Ptempnext != Nil)
 		{
-			if (strcmp(Info(Ptempnext).nama, Info(Ptemp).nama) < 0)
+			if (Info(Ptempnext).index_produk == Info(P).index_produk)
 			{
 				InsertAfter(L, P, Ptemp);
 				return;
@@ -268,12 +268,12 @@ void DelP(List *L, infotype X)
 	/*         tetap. List mungkin menjadi kosomg karena penghapusan   */
 	address P = First(*L);
 
-	while ((Next(P) != Nil) && (strcmp(Info(P).nama, X.nama) == 0))
+	while ((Next(P) != Nil) && (Info(P).index_produk == X.index_produk))
 	{
 		P = Next(P);
 	} /*Next(P)=Nil or Info(P)= X */
 
-	if (strcmp(Info(P).nama, X.nama) == 0)
+	if (Info(P).index_produk == X.index_produk)
 	{
 		Dealokasi(&P);
 	}
@@ -333,7 +333,7 @@ void DeleteDuplicate(List *L, address Punq)
 
 	while (p != Nil)
 	{
-		if (strcmp(Info(p).nama, Info(Punq).nama) == 0)
+		if (Info(p).index_produk == Info(Punq).index_produk)
 		{
 			DelAfter(L, &pdel, prev);
 			Dealokasi(&pdel);
@@ -432,7 +432,7 @@ void PrintInfo(List L)
 		printf("[ ");
 		do
 		{
-			printf("%s, ", Info(P).nama);
+			printf("%d, ", Info(P).index_produk);
 			P = Next(P);
 			i++;
 		} while (P != Nil);

@@ -22,7 +22,7 @@
 
 typedef struct
 {
-  char nama[50];
+  int index_produk;
 } Produk;
 
 typedef Produk infotype;

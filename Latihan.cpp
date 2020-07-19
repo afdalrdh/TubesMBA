@@ -466,7 +466,7 @@ int main() {
     int a1[3] = {1,3,4};
     int a2[3] = {2,3,5};
     int a3[4] = {1,2,3,5};
-    int a4[2] = {2,5};
+    int a4[1] = {2};
     int a5[3] = {1,3,5};
     
     int temp[5];
@@ -493,9 +493,9 @@ int main() {
 	{
 		doSupportCombination(root, a3, temp, 0, 3, 0, i+1);
 	}
-	for(i=0; i<2; i++)
+	for(i=0; i<1; i++)
 	{
-		doSupportCombination(root, a4, temp, 0, 1, 0, i+1);
+		doSupportCombination(root, a4, temp, 0, 0, 0, i+1);
 	}
 	for(i=0; i<3; i++)
 	{
