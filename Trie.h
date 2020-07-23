@@ -28,7 +28,7 @@ typedef struct tTrieNode* trie_address;
  
 typedef struct tTrieNode {
     int data;
-    trie_address children[N];
+    trie_address children[30];
     int support;
 }TrieNode;
 

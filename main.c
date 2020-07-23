@@ -12,6 +12,6 @@
 #include <conio.h>
 int main()
 {
-	mainMenu(2, 60);
+	mainMenu();
 	return 0;
 }
